@@ -1,0 +1,1 @@
+export const mongoDBURL = 'mongodb://localhost:27017/';
