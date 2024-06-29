@@ -1,46 +1,37 @@
 import express from 'express';
 import connectDB from './database/connectDB.js'
 import { mongoDBURL } from './config.js';
-import { User } from './database/models/User.js'
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import passport from "passport";
+import "./strategies/localStrategy.js";
+import userRoutes from "./routes/userRoutes.js"
+
 
 
 const app = express();
+connectDB(mongoDBURL);
 
 // middleware for parsing post requests to json
 app.use(express.json());
+app.use(cookieParser());
+app.use(session({
+  secret: "emmy codez",
+  saveUninitialized: false,
+  resave: false,
+  cooke: {
+    maxAge: 1000 * 60 * 60 * 24 * 7
+  }
+}));
+
+// TODO: Ask chatgpt for a good cookie max age for my sass
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 const port  = process.env.PORT || 5100;
 
-// connectDB(mongoDBURL);
-
-app.get('/', (request,response) => {
-  response.send('Welcome to my API');
-  console.log("This is quizbuddys server");
-  console.log("The quizbuddy server is ready to go");
-});
-
-
-app.post('/api/users', async(request, response) => {
-  try {
-    const { email, givenName, familyName } = request.body;
-    if(!email || !givenName || !familyName){
-      return response.status(400).send({ message: "send all required fields: email, givenName, familyName"})
-    }
-
-    const newUser = {
-      email, givenName, familyName
-    };
-  
-    const user = await User.create(newUser);
-    return response.status(201).send(user);
-  } catch (error) {
-    console.log(error.message);
-    response.status(500).send
-    ({ message: error.message });
-  }
-});
-
-a
+app.use(userRoutes);
 
 
 
