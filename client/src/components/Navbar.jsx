@@ -1,5 +1,6 @@
 import { arrow } from '../assets';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom'
+import { BrainLogo } from './Assets';
 
 
 const Navbar = () => {
@@ -12,8 +13,11 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           <div className="shrink-0">
             <NavLink to='/'>
+            <div className='flex flex-row justify-center items-center'>
+              <img src={BrainLogo} className='w-[40px] h-[40px] object-contain cursor-pointer'/>
               <h1 className="font-bold text-2xl text-blue-600 font-poppins">QuizBuddy</h1>
               {/* <img src={quizLogo} alt="quiz_buddy_logo" className="w-[500px] h-[100px] cursor-pointer" /> */}
+            </div>
             </NavLink>
           </div>
           <div className="hidden items-center justify-center gap-4 lg:flex">

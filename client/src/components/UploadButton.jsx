@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { MdCloudUpload, MdDelete } from "react-icons/md";
 import { AiFillFileImage } from "react-icons/ai";
+import UploadZone from "./UploadZone";
 
 const UploadButton = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,23 +22,16 @@ const UploadButton = () => {
         Upload PDF
       </button>
       {isOpen && (
-        <div>
-          <form
-            action=""
-            className="flex flex-col justify-center items-center border-2 border-dashed border-blue-600 p-4 h-[300px] w-[500px] cursor-pointer rounded-sm"
-            onClick={handleFormClick}
-          >
-            <input
-              type="file"
-              accept=".pdf, .doc, .docx, .xls, .xlsx, .ppt, .pptx, .txt"
-              ref={fileInputRef}
-              className="hidden"
-            />
-          </form>
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-md"></div>
+          <div className="relative bg-white p-6 rounded-lg shadow-lg z-10 flex flex-col items-center space-y-4 w-full max-w-[600px]">
+            <div className="w-full max-w-[800px] p-4 border border-gray-300 rounded-lg shadow-md">
+              <UploadZone />
+            </div>
+            <button className="mt-4 text-red-500" onClick={() => setIsOpen(!isOpen)}>Close</button>
+          </div>
         </div>
       )}
-
-      {/* display all user files */}
     </div>
   );
 };

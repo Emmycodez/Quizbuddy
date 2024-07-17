@@ -1,48 +1,67 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"
-import { auth, googleProvider, } from "../firebaseconfig";
+import { useNavigate } from "react-router-dom";
+import { auth, googleProvider } from "../firebaseconfig";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import GoogleButton from 'react-google-button';
+import axios from "axios";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // Add this line
   const navigate = useNavigate();
-
 
   async function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-    // Signed up 
-    const user = userCredential.user;
-    // ...  
-    navigate('/Dashboard');
-  })
-  .catch((error) => {
-    console.log(error);
-    setError(error.message);
-    return;
-  }) 
-  setIsLoading(false);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Send user details to the server
+      await axios.post("http://localhost:5174/api/create-user", {
+        uid: user.uid,
+        email: user.email,
+        name: name,
+        password: password
+      });
+
+      // Redirect to Auth Callback
+      setIsLoading(false);
+      navigate('/auth-callback');
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      setError(error.message);
+      setIsLoading(false);
+    }
   }
 
   async function signInWithGoogle() {
-       signInWithPopup(auth, googleProvider)
-      .then((userCredential) => {
-    // Signed up 
-    const user = userCredential.user;
-    const userName =  user.displayName;
-    // ...
-  })
-  . catch((error) => {
-    setError("Failed to create an account");
-  }) 
-  setIsLoading(false);
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+
+      // Send user details to the server
+      await axios.post("http://localhost:5174/api/create-user", {
+        uid: user.uid,
+        email: user.email,
+        name: user.displayName || "Default Name",
+        password: "12345"
+      });
+
+      // Redirect to Auth Callback
+      setIsLoading(false);
+      navigate('/auth-callback');
+    } catch (error) {
+      console.log(error.response?.data || error.message);
+      setError(error.message);
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -78,30 +97,30 @@ const Signup = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="flex flex-col py-2">
+          <div className="flex flex-col py-2 relative">
             <label className="text-gray-500">Password</label>
             <input
               className="border p-2"
-              type="password"
+              type={showPassword ? "text" : "password"} // Change this line
               id="password"
               required
               onChange={(e) => setPassword(e.target.value)}
             />
+            <div 
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </div>
           </div>
           <button className="border w-full my-5 py-2 bg-blue-600 hover:bg-blue-500 text-white">
-            {isLoading? 'Signing Up....' : 'Sign Up'}
+            {isLoading ? 'Signing Up....' : 'Sign Up'}
           </button>
           <div className="flex flex-row items-center justify-between">
             <hr className="border border-gray-300 w-full"/> <p className="mx-2">or</p> <hr className="border border-gray-300 w-full"/>
           </div>
           <div className="flex justify-center items-center bg-white rounded-lg my-4">
             <GoogleButton onClick={signInWithGoogle}/>
-          </div>
-          <div className="flex justify-between items-center">
-            {/* <p className="flex items-center ">
-              <input className="mr-2" type="checkbox" />
-              Remember me
-            </p> */}
           </div>
         </form>
         <div className="w-100 text-center">
@@ -113,4 +132,3 @@ const Signup = () => {
 };
 
 export default Signup;
-

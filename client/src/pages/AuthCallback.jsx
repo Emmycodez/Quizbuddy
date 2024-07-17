@@ -1,41 +1,40 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import axios from "axios"; 
-
+import axios from "axios";
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const auth = getAuth();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        try {
-          // Check if the user exists in the database
-          const response = await axios.post('/api/check-user', { uid: user.uid });
-
-          if (response.data.exists) {
-            // User exists, sync user data
-            // You can add any user sync logic here
-          } else {
-            // User does not exist, create a new user
-            await axios.post('/api/create-user', {
-              uid: user.uid,
-              email: user.email,
-              displayName: user.displayName,
-            });
-          }
-
-          // Redirect to the dashboard
-          navigate('/dashboard');
-        } catch (error) {
-          console.error("Error checking/creating user:", error);
-          // Handle error accordingly
-        }
+        const uid = user.uid;
+        // Send uid to the express server
+        axios
+          .post("http://localhost:5174/api/check-user", { uid })
+          .then((response) => {
+            if (response.data.exists) {
+              console.log("User exists in the database");
+              setIsLoading(false);
+              navigate("/dashboard");
+            } else {
+              console.log("User does not exist in the database");
+              setIsLoading(false);
+              navigate("/signup");
+            }
+          })
+          .catch((error) => {
+            setIsLoading(false);
+            alert("An error occurred. Please check the console");
+            console.log(error);
+          });
       } else {
         // Redirect to signup if no user is logged in
-        navigate('/signup');
+        setIsLoading(false);
+        navigate("/signup");
       }
     });
 
@@ -43,7 +42,15 @@ const AuthCallback = () => {
     return () => unsubscribe();
   }, [auth, navigate]);
 
-  return <p>Processing...</p>;
+  return (
+    <div className="w-full mt-24 h-screen fle justify-center">
+      <div className="flex flex-col items-center gap-2">
+        <h3 className="font-semibold text-xl ">Setting up your account</h3>
+        <p>You will be redirected automatically......</p>
+      </div>
+    </div>
+  );
 };
 
 export default AuthCallback;
+// TODO: Create a loading spinner for the setting up of the account
