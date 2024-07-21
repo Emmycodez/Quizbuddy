@@ -4,13 +4,14 @@ import DropZone from "react-dropzone";
 import { FaCloudUploadAlt } from "react-icons/fa";
 import { CiFileOn } from "react-icons/ci";
 import ProgressBar from "./ProgressBar";
+import { handleUpload } from "../lib/utils/handleUpload";
+import { useSnackbar } from "notistack";
 
-
-const UploadZone = () => {
+const UploadZone = ({ authToken }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
-  
+  const { enqueueSnackbar } = useSnackbar();
 
   const startSimulatedProgress = () => {
     setUploadProgress(0);
@@ -27,25 +28,37 @@ const UploadZone = () => {
     return interval;
   };
 
+  const handleFileDrop = async (acceptedFiles) => {
+    setIsUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", acceptedFiles[0]);
+
+    const progressInterval = startSimulatedProgress();
+
+    const result = await handleUpload(
+      formData,
+      setUploadProgress,
+      setIsUploading,
+      authToken
+    );
+
+    clearInterval(progressInterval);
+    setUploadProgress(100);
+    setIsUploading(false);
+
+    if (result.success) {
+      enqueueSnackbar('File uploaded successfully', { variant: 'success' });
+      console.log(result.data.newFile.fileName);
+      navigate(`/dashboard/${result.data.newFile._id}`);
+    } else {
+      enqueueSnackbar('Upload failed: ' + result.error, { variant: 'error' });
+      console.error('Upload failed:', result.error);
+    }
+  };
+
   return (
-    <DropZone
-      multiple={false}
-      onDrop={(acceptedFiles) => {
-        setIsUploading(true);
-
-        const progressInterval = startSimulatedProgress();
-
-        // Simulate file upload
-        setTimeout(() => {
-          clearInterval(progressInterval);
-          setUploadProgress(100);
-          setIsUploading(false);
-
-          // Navigate or do something else after upload
-          // navigate("/some/path");
-        }, 5000); // Simulate a 5-second upload
-      }}
-    >
+    <DropZone multiple={false} onDrop={handleFileDrop}>
       {({ getRootProps, getInputProps, acceptedFiles }) => (
         <div
           {...getRootProps()}
@@ -68,7 +81,7 @@ const UploadZone = () => {
                 </p>
               </div>
 
-              {acceptedFiles && acceptedFiles[0] ? (
+              {acceptedFiles && acceptedFiles[0] && (
                 <div className="max-w-xs bg-white flex items-center rounded-md overflow-hidden outline outline-[1px] outline-zinc-200 divide-x divide-zinc-200">
                   <div className="px-3 py-2 h-full grid place-items-center">
                     <CiFileOn className="h-4 w-4 text-blue-500" />
@@ -77,17 +90,19 @@ const UploadZone = () => {
                     {acceptedFiles[0].name}
                   </div>
                 </div>
-              ) : null}
+              )}
 
               {isUploading && (
                 <div className="w-full mt-4 max-w-xs mx-auto">
                   <ProgressBar
                     max={100}
                     value={uploadProgress}
-                    className="h-1 w-full"
+                    className="h-full w-full"
+
                   />
                 </div>
               )}
+              <input {...getInputProps()} type='file' id='dropzone-file' className="hidden"/>
             </label>
           </div>
         </div>

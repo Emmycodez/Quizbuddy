@@ -1,17 +1,39 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MdCloudUpload, MdDelete } from "react-icons/md";
 import { AiFillFileImage } from "react-icons/ai";
 import UploadZone from "./UploadZone";
+import { getAuth } from 'firebase/auth';
 
 const UploadButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const [authToken, setAuthToken] = useState(null);
+  const [ isLoading, setIsLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchAuthToken = async () => {
+      const user = getAuth().currentUser;
+      if(user) {
+        const token = await user.getIdToken();
+        setAuthToken(token);
+      }
+     setIsLoading(false);
+    };
+
+    fetchAuthToken();
+  }, []);
 
   const handleFormClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
+
+
+  if(isLoading){
+    return <div>Loading.....</div>;
+  }
 
   return (
     <div>
@@ -26,7 +48,7 @@ const UploadButton = () => {
           <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-md"></div>
           <div className="relative bg-white p-6 rounded-lg shadow-lg z-10 flex flex-col items-center space-y-4 w-full max-w-[600px]">
             <div className="w-full max-w-[800px] p-4 border border-gray-300 rounded-lg shadow-md">
-              <UploadZone />
+              <UploadZone authToken={authToken} />
             </div>
             <button className="mt-4 text-red-500" onClick={() => setIsOpen(!isOpen)}>Close</button>
           </div>

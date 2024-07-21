@@ -78,17 +78,17 @@ const Dashboard = () => {
     <>
       {user ? (
         <main className="mx-auto max-w-7xl md:p-10">
-          <div className="mt-8 flex flex-row items-center justify-between gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+          <div className="mt-8 flex flex-col items-start justify-between gap-4 border-b border-gray-200 pb-5 sm:flex-row sm:items-center  sm:gap-0">
             <h1 className="mb-3 font-bold text-5xl text-gray-900">My Files</h1>
             <UploadButton />
-            <p className="text-gray-900">
+            {/* <p className="text-gray-900">
               {user.email ? user.email : "No email available"}
-            </p>
+            </p> */}
           </div>
           {/* Display all user files */}
           {files && files?.length !== 0 ? (
             <div>
-              <ul className="mt-8 grid-cols-1 gap-6 divide-y divide-zinc-200 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="mt-8 grid grid-cols-1 gap-6 divide-y divide-zinc-200 md:grid-cols-2 lg:grid-cols-3">
                 {files
                   .sort(
                     (a, b) =>
@@ -102,7 +102,7 @@ const Dashboard = () => {
                     >
                       <Link
                         to={`/dashboard/${file._id}`}
-                        className="flex flex-col gap-2 "
+                        className="flex flex-col gap-2"
                       >
                         <div className="pt-6 px-6 flex w-full items-center justify-between space-x-6">
                           <div className="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500" />
@@ -116,7 +116,7 @@ const Dashboard = () => {
                         </div>
                       </Link>
 
-                      <div className="px-6 mt-4 grid-cols-3 place-items-cener py-2 gap-6 text-xs text-zinc-500">
+                      <div className="px-6 mt-4 grid-cols-3 place-items-center py-2 gap-6 text-xs text-zinc-500">
                         <div className="flex items-center gap-2">
                           <FaPlus className="h-4 w-4" />
                           {format(new Date(file.createdAt), "MMM yyyy")}

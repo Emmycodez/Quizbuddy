@@ -37,7 +37,6 @@ const fileSchema = new mongoose.Schema({
   },
   uploadDate: { type: Date, default: Date.now },
   key: { type: String },
-  chapterBreakdown: [chapterSchema],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

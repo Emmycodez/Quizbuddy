@@ -12,6 +12,7 @@ import dotenv from "dotenv";
 import admin from "firebase-admin";
 import authenticate from "./middlewares/authMiddleware.js";
 
+
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,10 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+
+
+
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 admin.initializeApp({
