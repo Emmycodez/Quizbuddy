@@ -37,7 +37,7 @@ const Dashboard = () => {
         try {
           setIsLoading(true);
           const response = await axios.get(
-            "http://localhost:5174/api/getUserFiles",
+            "https://quizbuddy-one.vercel.app/api/getUserFiles",
             {
               headers: {
                 Authorization: `Bearer ${await user.getIdToken()}`,
@@ -61,7 +61,7 @@ const Dashboard = () => {
   const handleDeleteBook = async (id) => {
     setCurrentlyDeletingFile(id);
     try {
-      await axios.delete(`http://localhost:5174/api/file/${id}`, {
+      await axios.delete(`https://quizbuddy-one.vercel.app/api/file/${id}`, {
         headers: {
           Authorization: `Bearer ${await user.getIdToken()}`,
         },

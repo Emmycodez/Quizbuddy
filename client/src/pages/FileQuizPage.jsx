@@ -33,7 +33,7 @@ const FileQuizPage = () => {
           setIsLoading(true);
 
           const token = await user.getIdToken();
-          const response = await axios.get(`http://localhost:5174/api/stream-quiz/${fileId}`, {
+          const response = await axios.get(`https://quizbuddy-one.vercel.app/api/stream-quiz/${fileId}`, {
             headers: {
               Authorization: `Bearer ${token}`,
               Accept: 'text/event-stream', // Ensure server sends data in a stream

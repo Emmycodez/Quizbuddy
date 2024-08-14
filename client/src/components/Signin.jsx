@@ -23,7 +23,7 @@ const Signin = () => {
       console.log(user);
 
       // Send token to the server
-      const response = await axios.post("http://localhost:5174/api/check-user", {
+      const response = await axios.post("https://quizbuddy-one.vercel.app/api/check-user", {
         uid: user.uid,
       });
 
@@ -47,7 +47,7 @@ const Signin = () => {
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
 
-      const response = await axios.post("http://localhost:5174/api/check-user", {
+      const response = await axios.post("https://quizbuddy-one.vercel.app/api/check-user", {
         uid: user.uid,
       });
 

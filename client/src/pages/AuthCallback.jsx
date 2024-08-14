@@ -14,7 +14,7 @@ const AuthCallback = () => {
         const uid = user.uid;
         // Send uid to the express server
         axios
-          .post("http://localhost:5174/api/check-user", { uid })
+          .post("https://quizbuddy-one.vercel.app/api/check-user", { uid })
           .then((response) => {
             if (response.data.exists) {
               console.log("User exists in the database");

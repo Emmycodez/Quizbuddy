@@ -6,7 +6,7 @@ export const handleUpload = async (formData, setUploadProgress, setIsUploading, 
       throw new Error("No authentication token provided");
     }
 
-    const response = await axios.post('http://localhost:5174/api/file/upload', formData, {
+    const response = await axios.post('https://quizbuddy-one.vercel.app/api/file/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         'Authorization': `Bearer ${authToken}`  // Ensure token is included here
