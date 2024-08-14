@@ -16,7 +16,6 @@ import authenticate from "./middlewares/authMiddleware.js";
 dotenv.config();
 
 const app = express();
-app.use(cors());
 connectDB(mongoDBURL);
 
 // middleware for parsing post requests to json
@@ -24,6 +23,20 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const corsOptions = {
+  origin: 'https://quizbuddyai.vercel.app', // Update this as needed for different environments
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true, // Enable cookies to be sent with CORS requests if needed
+};
+
+app.use(cors(corsOptions));
+
+
+
+
+app.use(cors(corsOptions));
 
 
 
