@@ -1,10 +1,10 @@
 import admin from 'firebase-admin';
 
+// Middleware to authenticate using Firebase token
 const authenticate = async (request, response, next) => {
-  const idToken = request.headers.authorization?.split('Bearer ')[1];
-
+  const idToken = request.headers.authorization?.split(" ")[1];
   if (!idToken) {
-    return response.status(401).json({ error: "Unauthorized" });
+    return response.status(401).json({ error: "No token provided" });
   }
 
   try {
@@ -12,9 +12,10 @@ const authenticate = async (request, response, next) => {
     request.user = decodedToken;
     next();
   } catch (error) {
-    console.error("Error verifying ID token: ", error);
-    return response.status(401).json({ error: 'Error verifying ID token' });
+    console.error("Error verifying token:", error);
+    response.status(401).json({ error: "Unauthorized" });
   }
 };
+
 
 export default authenticate;

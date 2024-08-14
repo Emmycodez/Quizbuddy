@@ -20,6 +20,7 @@ const Signin = () => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
+      console.log(user);
 
       // Send token to the server
       const response = await axios.post("http://localhost:5174/api/check-user", {

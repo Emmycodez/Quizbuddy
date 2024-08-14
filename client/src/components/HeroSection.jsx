@@ -1,10 +1,15 @@
 import { arrow } from "../assets";
 import Companies from "../components/Companies";
-import { useKindeAuth } from "@kinde-oss/kinde-auth-react";
+
 
 const HeroSection = () => {
-  const { login, register } = useKindeAuth();
+const register = () => {
+  console.log('register')
+}
 
+const login = () => {
+  console.log('login')
+}
   return (
     <section className="text-center flex flex-col font-poppins py-[50px] px-[60px] sm:pb-16 lg:pb-20 items-center bg-white">
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">

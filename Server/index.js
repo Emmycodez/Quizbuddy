@@ -47,7 +47,7 @@ const RouteHandlerConfig = {
   fetch: customFetchFunction
 };
 
-const port = process.env.PORT || 5100;
+// const port = process.env.PORT || 5100;
 app.use(userRoutes);
 app.use(documentUploadRoute);
 app.use(
@@ -59,6 +59,6 @@ app.use(
   })
 );
 
-app.listen(port, () => {
-  console.log(`server is running on ${port}`);
+app.listen( () => {
+  console.log(`server is running on`);
 });

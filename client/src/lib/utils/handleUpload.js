@@ -1,26 +1,26 @@
+import axios from 'axios';
+
 export const handleUpload = async (formData, setUploadProgress, setIsUploading, authToken) => {
   try {
-    const response = await fetch('http://localhost:5174/api/file/upload', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to upload file');
+    if (!authToken) {
+      throw new Error("No authentication token provided");
     }
 
-    const result = await response.json();
-    console.log(result);
-    setUploadProgress(100);
-    setIsUploading(false);
-
-    return { success: true, data: result };
+    const response = await axios.post('http://localhost:5174/api/file/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${authToken}`  // Ensure token is included here
+      },
+      onUploadProgress: (progressEvent) => {
+        setUploadProgress((progressEvent.loaded / progressEvent.total) * 100);
+      }
+    });
+    return { success: true, data: response.data };
+    console.log(response.data);
   } catch (error) {
     console.error('Error uploading file:', error);
-    setIsUploading(false);
     return { success: false, error: error.message };
+  } finally {
+    setIsUploading(false);
   }
 };

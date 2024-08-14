@@ -7,6 +7,7 @@ import ProgressBar from "./ProgressBar";
 import { handleUpload } from "../lib/utils/handleUpload";
 import { useSnackbar } from "notistack";
 
+
 const UploadZone = ({ authToken }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -30,6 +31,8 @@ const UploadZone = ({ authToken }) => {
 
   const handleFileDrop = async (acceptedFiles) => {
     setIsUploading(true);
+
+    console.log('Auth Token: ', authToken);
 
     const formData = new FormData();
     formData.append("file", acceptedFiles[0]);

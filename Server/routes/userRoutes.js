@@ -33,7 +33,6 @@ router.post(
 router.post('/api/check-user', async (request, response) => {
     const {  uid } = request.body;
     try {
-
       const user = await User.findOne({ uid });
       if (user) {
         response.json({ exists: true });

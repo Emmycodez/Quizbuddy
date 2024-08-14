@@ -5,13 +5,41 @@ import authenticate from "../middlewares/authMiddleware.js";
 import fetch from "node-fetch";
 import upload from "../s3Upload.js";
 import OpenAI from "openai";
-
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import { fetchQuizQuestions } from "../utils/fetchQuizQuestons.js";
+import { processDocument } from "../utils/documentProcessor.js";
+import { PassThrough } from 'stream';
 
 dotenv.config();
 const router = Router();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+const checkRateLimits = (response) => {
+  const limitRequests = response.headers.get('x-ratelimit-limit-requests');
+  const remainingRequests = response.headers.get('x-ratelimit-remaining-requests');
+  const resetRequests = response.headers.get('x-ratelimit-reset-requests');
+  const limitTokens = response.headers.get('x-ratelimit-limit-tokens');
+  const remainingTokens = response.headers.get('x-ratelimit-remaining-tokens');
+  const resetTokens = response.headers.get('x-ratelimit-reset-tokens');
+
+  console.log('Rate limits:', { limitRequests, remainingRequests, resetRequests, limitTokens, remainingTokens, resetTokens });
+  
+  // Example logic: If remaining requests are low, delay the next request
+  if (remainingRequests <= 5) {
+    console.warn('Approaching rate limit. Please wait before making further requests.');
+    // Implement delay or retry logic here based on reset times
+  }
+};
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
+  region: process.env.AWS_REGION,
 });
 
 router.get("/api/getUserFiles", authenticate, async (request, response) => {
@@ -28,7 +56,6 @@ router.get("/api/getUserFiles", authenticate, async (request, response) => {
       .status(200)
       .set("Content-Type", "application/json")
       .json(userFiles);
-    // console.log(userFiles.files);
   } catch (error) {
     console.log("Error retrieving user files: ", error);
     return response
@@ -36,11 +63,19 @@ router.get("/api/getUserFiles", authenticate, async (request, response) => {
       .json({ error: "Failed to retrieve user files" });
   }
 });
+
 router.post(
   "/api/file/upload",
   authenticate,
-  upload.single("file"),
+  upload.single('file'),
   async (request, response) => {
+    console.log('User: ', request.user)
+    console.log('User ID: ', request.user.uid);
+
+    if(!request.user || !request.user.uid) {
+      return response.status(401).json({ error: 'Unauthorized'});
+    }
+
     const userId = request.user.uid;
     try {
       const fileUrl = request.file.location;
@@ -70,12 +105,13 @@ router.post(
   }
 );
 
-router.delete("/api/file/:id", authenticate, async (request, response) => {
-  try {
-    const fileId = request.params.fileId;
-    const userId = request.user.uid; // Get the user ID from the authenticated request
 
-    // Find the file and check if it belongs to the authenticated user
+router.delete("/api/file/:id", authenticate, async (request, response) => {
+  const { id } = request.params;
+  const userId = request.user.uid;
+
+  try {
+    // Find the file in the database
     const file = await File.findOne({ _id: id, user: userId });
 
     if (!file) {
@@ -84,7 +120,15 @@ router.delete("/api/file/:id", authenticate, async (request, response) => {
       });
     }
 
-    // Delete the file
+    // Delete the file from S3
+    const deleteParams = {
+      Bucket: process.env.S3_BUCKET_NAME, // Ensure this is defined
+      Key: file.fileName, // Ensure this matches the key used during upload
+    };
+
+    await s3.send(new DeleteObjectCommand(deleteParams));
+
+    // Delete the file record from the database
     await File.findByIdAndDelete(id);
 
     return response.status(200).send({ message: "File deleted successfully" });
@@ -94,9 +138,10 @@ router.delete("/api/file/:id", authenticate, async (request, response) => {
   }
 });
 
-router.get("/api/stream-quiz/:fileId", async (request, response) => {
-  const userId = req.user.uid;
-  const { fileId } = req.params;
+
+router.get("/api/stream-quiz/:fileId", authenticate, async (request, response) => {
+  const userId = request.user.uid;
+  const { fileId } = request.params;
 
   try {
     const file = await File.findOne({
@@ -105,81 +150,60 @@ router.get("/api/stream-quiz/:fileId", async (request, response) => {
     });
 
     if (!file) {
-      return res.status(404).json({ error: 'File not found' });
+      return response.status(404).json({ error: 'File not found' });
     }
 
-    // Fetch quiz questions from OpenAI
-    const openAiResponse = await fetch('openai_endpoint', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openAiApiKey}`
+    response.setHeader('Content-Type', 'application/json');
+
+    const stream = new PassThrough();
+    stream.pipe(response);
+
+    await processDocument(
+      file.filePath,
+      (partialResult) => {
+        stream.write(JSON.stringify({ partialResult }) + '\n');
       },
-      body: JSON.stringify({ fileUrl: file.filePath })
-    });
-
-    if (!openAiResponse.ok) {
-      throw new Error('Failed to fetch quiz questions');
-    }
-
-    const reader = openAiResponse.body.getReader();
-    const decoder = new TextDecoder();
-    let batch = '';
-
-    res.writeHead(200, {
-      'Content-Type': 'text/plain',
-      'Transfer-Encoding': 'chunked'
-    });
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      batch += decoder.decode(value, { stream: true });
-
-      if (batch.endsWith('\n')) {
-        res.write(batch);
-        batch = '';
+      (completeMessage) => {
+        stream.write(JSON.stringify({ completeMessage }) + '\n');
+        stream.end();
       }
-    }
+    );
 
-    res.end();
   } catch (error) {
-    console.error('Error streaming quiz questions:', error);
-    res.status(500).send('Failed to stream quiz questions');
+    console.error('Error fetching quiz questions:', error);
+    response.status(500).send('Failed to fetch quiz questions');
   }
 });
-    
+// router.get("/api/stream-quiz/:fileId", authenticate, async (request, response) => {
+//   const userId = request.user.uid;
+//   const { fileId } = request.params;
 
-export default router;
+//   try {
+//     const file = await File.findOne({
+//       user: userId,
+//       _id: fileId,
+//     });
 
-//     const fileContent = await fetchResponse.text();
-
-//     let completion;
-//     try {
-//       completion = await openai.chat.completions.create({
-//         messages: [
-//           {
-//             role: "system",
-//             content: `Create a quiz from the following document content:\n\n${fileContent}`,
-//           },
-//         ],
-//         model: "gpt-3.5-turbo",
-//       });
-//     } catch (error) {
-//       if (error.status === 429) {
-//         console.error("Rate limit exceeded:", error);
-//         return response
-//           .status(429)
-//           .json({ error: "Rate limit exceeded. Please try again later." });
-//       }
-//       throw error;
+//     if (!file) {
+//       return response.status(404).json({ error: 'File not found' });
 //     }
 
-//     const quizData = completion.choices[0].message.content;
-//     res.json({ quiz: quizData });
+//     // Fetch the file content from S3
+//     const fileContent = await fetch(file.filePath).then(res => res.text());
+
+//     // Use the processDocument function to get the quiz data
+//     const quizData = await processDocument(fileContent);
+
+//     response.status(200).json({ quiz: quizData });
 //   } catch (error) {
-//     console.error("Error processing file:", error);
-//     res.status(500).json({ error: "Failed to process file" });
+//     if (error.response && error.response.status === 429) {
+//       console.error("Rate limit exceeded, please try again later.");
+//       response.status(429).send('Rate limit exceeded, please try again later.');
+//     } else {
+//       console.error('Error fetching quiz questions:', error);
+//       response.status(500).send('Failed to fetch quiz questions');
+//     }
 //   }
-// }
+// });
+
+export default router;

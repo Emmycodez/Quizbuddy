@@ -4,25 +4,23 @@ import { AiFillFileImage } from "react-icons/ai";
 import UploadZone from "./UploadZone";
 import { getAuth } from 'firebase/auth';
 
-const UploadButton = () => {
+const UploadButton = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const fileInputRef = useRef(null);
-  const [authToken, setAuthToken] = useState(null);
-  const [ isLoading, setIsLoading] = useState(true);
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [authToken, setAuthToken] = useState('');
 
   useEffect(() => {
     const fetchAuthToken = async () => {
-      const user = getAuth().currentUser;
-      if(user) {
+      if (user) {
         const token = await user.getIdToken();
         setAuthToken(token);
       }
-     setIsLoading(false);
+      setIsLoading(false);
     };
 
     fetchAuthToken();
-  }, []);
+  }, [user]);
 
   const handleFormClick = () => {
     if (fileInputRef.current) {
@@ -30,8 +28,7 @@ const UploadButton = () => {
     }
   };
 
-
-  if(isLoading){
+  if (isLoading) {
     return <div>Loading.....</div>;
   }
 

@@ -2,7 +2,8 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { GiCancel } from "react-icons/gi";
 
-const QuizLayout = () => {
+const QuizLayout = ({quiz}) => {
+  console.log(quiz);
   return (
       <>
         <div className="text-zinc-500 flex flex-row justify-between items-center py-4 px-6 text-[16px] mb-[20px] ml-[290px] mr-[290px] mt-[40px] w-[872px]"> 
