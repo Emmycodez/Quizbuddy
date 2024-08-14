@@ -22,6 +22,7 @@ const Signup = () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // https://quizbuddy-one.vercel.app/api/create-user"
       // Send user details to the server
       await axios.post("https://quizbuddy-one.vercel.app/api/create-user", {
         uid: user.uid,
@@ -47,7 +48,7 @@ const Signup = () => {
       const user = userCredential.user;
 
       // Send user details to the server
-      await axios.post("https://quizbuddy-one.vercel.app/api/create-user", {
+      await axios.post("https://quizbuddy-one.vercel.app//api/create-user", {
         uid: user.uid,
         email: user.email,
         name: user.displayName || "Default Name",

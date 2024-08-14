@@ -24,17 +24,14 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// 'https://quizbuddyai.vercel.app'
+
 const corsOptions = {
-  origin: 'https://quizbuddyai.vercel.app', // Update this as needed for different environments
+  origin:'https://quizbuddyai.vercel.app', // Update this as needed for different environments
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true, // Enable cookies to be sent with CORS requests if needed
 };
-
-app.use(cors(corsOptions));
-
-
-
 
 app.use(cors(corsOptions));
 
@@ -51,26 +48,26 @@ const customFetchFunction = () => {
   console.log("custom fetch function");
 }
 
-const RouteHandlerConfig = {
-  callbackUrl: "https://your-callback-url.example.com", // Optional: Customize callback URL
-  uploadthingId: process.env.UPLOADTHING_APP_ID, // Optional: Provide UploadThing app id
-  uploadthingSecret: process.env.UPLOADTHING_SECRET, // Optional: Provide UploadThing API key
-  logLevel: "debug", //
-  isDev: true, // Optional: Enable dev mode
-  fetch: customFetchFunction
-};
+// const RouteHandlerConfig = {
+//   callbackUrl: "https://your-callback-url.example.com", // Optional: Customize callback URL
+//   uploadthingId: process.env.UPLOADTHING_APP_ID, // Optional: Provide UploadThing app id
+//   uploadthingSecret: process.env.UPLOADTHING_SECRET, // Optional: Provide UploadThing API key
+//   logLevel: "debug", //
+//   isDev: true, // Optional: Enable dev mode
+//   fetch: customFetchFunction
+// };
 
 // const port = process.env.PORT || 5100;
 app.use(userRoutes);
 app.use(documentUploadRoute);
-app.use(
-  "/api/uploadthing",
-  authenticate,
-  createRouteHandler({
-    router: uploadRouter,
-    config: RouteHandlerConfig,
-  })
-);
+// app.use(
+//   "/api/uploadthing",
+//   authenticate,
+//   createRouteHandler({
+//     router: uploadRouter,
+//     config: RouteHandlerConfig,
+//   })
+// );
 
 app.listen( () => {
   console.log(`server is running on`);

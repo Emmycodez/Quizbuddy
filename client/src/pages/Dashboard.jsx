@@ -37,7 +37,7 @@ const Dashboard = () => {
         try {
           setIsLoading(true);
           const response = await axios.get(
-            "https://quizbuddy-one.vercel.app/api/getUserFiles",
+            "http://locahost:5174/api/getUserFiles",
             {
               headers: {
                 Authorization: `Bearer ${await user.getIdToken()}`,
