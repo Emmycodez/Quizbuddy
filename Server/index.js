@@ -27,11 +27,7 @@ app.use(cookieParser());
 // 'https://quizbuddyai.vercel.app'
 
 const corsOptions = {
-  origin:'https://quizbuddyai.vercel.app', // Update this as needed for different environments
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true, // Enable cookies to be sent with CORS requests if needed
-};
+  origin:'https://quizbuddyai.vercel.app'}
 
 app.use(cors(corsOptions));
 
